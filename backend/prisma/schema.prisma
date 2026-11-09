@@ -1,0 +1,95 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  passwordHash String
+  name         String
+  role         String       @default("STUDENT") // STUDENT, FACULTY, ADMIN
+  classGroup   String?
+  createdAt    DateTime     @default(now())
+
+  examsCreated  Exam[]         @relation("FacultyExams")
+  questionBanks QuestionBank[]
+  attempts      ExamAttempt[]
+}
+
+model QuestionBank {
+  id          String     @id @default(uuid())
+  title       String
+  subject     String
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+}
+
+model Question {
+  id             String        @id @default(uuid())
+  questionBankId String?
+  questionBank   QuestionBank? @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+  examId         String?
+  exam           Exam?         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  prompt         String
+  optionA        String
+  optionB        String
+  optionC        String
+  optionD        String
+  correctOption  String        // "A" | "B" | "C" | "D"
+  marks          Float         @default(1.0)
+  explanation    String?
+  createdAt      DateTime      @default(now())
+}
+
+model Exam {
+  id              String        @id @default(uuid())
+  title           String
+  description     String?
+  createdById     String
+  createdBy       User          @relation("FacultyExams", fields: [createdById], references: [id], onDelete: Cascade)
+  durationMinutes Int           @default(30)
+  totalMarks      Float         @default(100.0)
+  passingMarks    Float         @default(40.0)
+  targetClass     String        @default("ALL")
+  startTime       DateTime      @default(now())
+  endTime         DateTime      @default(now())
+  isPublished     Boolean       @default(false)
+  resultsReleased Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+
+  questions Question[]
+  attempts  ExamAttempt[]
+}
+
+model ExamAttempt {
+  id          String    @id @default(uuid())
+  examId      String
+  exam        Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+  score       Float?
+  isPassed    Boolean?
+  answers     String?   // JSON object: {"questionId": "A"}
+  status      String    @default("IN_PROGRESS") // IN_PROGRESS, SUBMITTED, DISQUALIFIED
+
+  violations ProctoringViolation[]
+}
+
+model ProctoringViolation {
+  id          String      @id @default(uuid())
+  attemptId   String
+  attempt     ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  type        String      // TAB_SWITCH, FULLSCREEN_EXIT, NO_FACE_DETECTED, MULTIPLE_FACES_DETECTED, LOOKING_AWAY
+  description String
+  timestamp   DateTime    @default(now())
+  reviewed    Boolean     @default(false)
+}

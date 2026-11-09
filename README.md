@@ -86,7 +86,7 @@ Pre-configured credentials ready for testing:
 ```bash
 cd backend
 npm run dev
-# Server runs on http://localhost:5000
+# Server runs on http://localhost:5001
 ```
 
 ### 2. Start Frontend App

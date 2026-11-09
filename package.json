@@ -1,0 +1,11 @@
+{
+  "name": "online-exam-system",
+  "version": "1.0.0",
+  "description": "Full-Stack Online Examination & AI Proctoring System",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "test:e2e": "node test-e2e.js"
+  }
+}
